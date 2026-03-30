@@ -1,0 +1,503 @@
+import React, { useState, useEffect } from 'react';
+
+// --- DATA CÂU HỎI ---
+const part1Data = [
+  {
+    id: 'p1_1',
+    text: 'Một bình đựng 4 quả cầu xanh và 6 quả cầu trắng. Chọn ngẫu nhiên 3 quả cầu. Xác suất để được 3 quả cầu toàn màu xanh là:',
+    options: ['A. 1/20', 'B. 1/30', 'C. 1/15', 'D. 3/10'],
+    correct: 'B',
+    explanation: 'Số phần tử không gian mẫu: n(Ω) = C³₁₀ = 120. Gọi A là biến cố "3 quả màu xanh". Số kết quả thuận lợi: n(A) = C³₄ = 4. Xác suất: P(A) = 4/120 = 1/30. Chọn B.'
+  },
+  {
+    id: 'p1_2',
+    text: 'Một hội đồng gồm 2 giáo viên và 3 học sinh được chọn từ một nhóm 5 giáo viên và 6 học sinh. Hỏi có bao nhiêu cách chọn hội đồng đó?',
+    options: ['A. 200.', 'B. 150.', 'C. 160.', 'D. 180.'],
+    correct: 'A',
+    explanation: 'Chọn 2 giáo viên từ 5 giáo viên: C²₅ = 10 cách. Chọn 3 học sinh từ 6 học sinh: C³₆ = 20 cách. Số cách chọn là 10 × 20 = 200 cách. Chọn A.'
+  },
+  {
+    id: 'p1_3',
+    text: 'Tìm hệ số của x²y² trong khai triển nhị thức Niu-tơn của (x+2y)⁴.',
+    options: ['A. 32.', 'B. 8.', 'C. 24.', 'D. 16.'],
+    correct: 'C',
+    explanation: 'Số hạng tổng quát: Cᵏ₄ · x^(4-k) · (2y)ᵏ. Để có x²y² thì k = 2. Hệ số là: C²₄ · 2² = 6 × 4 = 24. Chọn C.'
+  },
+  {
+    id: 'p1_4',
+    text: 'Gieo một đồng tiền và một con súc sắc. Số phần tử của không gian mẫu là:',
+    options: ['A. 24.', 'B. 12.', 'C. 6.', 'D. 8.'],
+    correct: 'B',
+    explanation: 'Đồng tiền có 2 mặt, súc sắc có 6 mặt. Theo quy tắc nhân, số phần tử không gian mẫu là 2 × 6 = 12. Chọn B.'
+  },
+  {
+    id: 'p1_5',
+    text: 'Trong mặt phẳng tọa độ Oxy, cho đường thẳng d: x + 2y - 3 = 0. Vectơ pháp tuyến của đường thẳng d là',
+    options: ['A. n = (1; 2)', 'B. n = (2; -1)', 'C. n = (-2; 3)', 'D. n = (1; 3)'],
+    correct: 'A',
+    explanation: 'Phương trình tổng quát ax + by + c = 0 có VTPT n = (a; b). Ở đây a=1, b=2 nên n = (1; 2). Chọn A.'
+  },
+  {
+    id: 'p1_6',
+    text: 'Xác định vị trí tương đối của hai đường thẳng sau đây Δ₁: x - 2y + 1 = 0 và Δ₂: -3x + 6y - 10 = 0.',
+    options: ['A. Song song.', 'B. Cắt nhau nhưng không vuông góc.', 'C. Trùng nhau.', 'D. Vuông góc nhau.'],
+    correct: 'A',
+    explanation: 'Ta xét tỉ lệ: 1/(-3) = (-2)/6 ≠ 1/(-10). Do đó hai đường thẳng song song với nhau. Chọn A.'
+  },
+  {
+    id: 'p1_7',
+    text: 'Góc giữa hai đường thẳng Δ₁: {x = -1 + 2t; y = 2 + 3t} và Δ₂: -5x - y + 9 = 0 bằng',
+    options: ['A. 135°', 'B. 45°', 'C. 30°', 'D. 60°'],
+    correct: 'B',
+    explanation: 'Δ₁ có VTCP u₁ = (2; 3) => VTPT n₁ = (3; -2). Δ₂ có VTPT n₂ = (-5; -1). cos(Δ₁, Δ₂) = |3(-5) + (-2)(-1)| / (√(3²+(-2)²)√( (-5)²+(-1)² )) = |-13| / (√13·√26) = 1/√2 => Góc bằng 45°. Chọn B.'
+  },
+  {
+    id: 'p1_8',
+    text: 'Khoảng cách từ điểm M(5; -1) đến đường thẳng Δ: 3x + 2y + 13 = 0 là:',
+    options: ['A. 28/√13', 'B. 2.', 'C. 2√13', 'D. 13/√2'],
+    correct: 'C',
+    explanation: 'd(M, Δ) = |3(5) + 2(-1) + 13| / √(3² + 2²) = |15 - 2 + 13| / √13 = 26 / √13 = 2√13. Chọn C.'
+  },
+  {
+    id: 'p1_9',
+    text: 'Đường tròn tâm I(-1; 2) và đi qua điểm M(2; 1) có phương trình là:',
+    options: ['A. x² + y² + 2x - 4y - 5 = 0.', 'B. x² + y² + 2x - 4y - 3 = 0.', 'C. x² + y² - 2x - 4y - 5 = 0.', 'D. x² + y² + 2x + 4y - 5 = 0.'],
+    correct: 'A',
+    explanation: 'Bán kính R² = IM² = (2 - (-1))² + (1 - 2)² = 3² + (-1)² = 10. PT đường tròn: (x + 1)² + (y - 2)² = 10 <=> x² + 2x + 1 + y² - 4y + 4 = 10 <=> x² + y² + 2x - 4y - 5 = 0. Chọn A.'
+  },
+  {
+    id: 'p1_10',
+    text: 'Cho elip có phương trình: x²/16 + y²/9 = 1. Khi đó tọa độ tiêu điểm của elip là.',
+    options: ['A. F₁(-√7; 0), F₂(√7; 0)', 'B. F₁(-16; 0), F₂(16; 0)', 'C. F₁(-9; 0), F₂(9; 0)', 'D. F₁(-4; 0), F₂(4; 0)'],
+    correct: 'A',
+    explanation: 'Từ PT ta có a² = 16, b² = 9. Ta có c² = a² - b² = 16 - 9 = 7 => c = √7. Tọa độ hai tiêu điểm nằm trên Ox là F₁(-√7; 0), F₂(√7; 0). Chọn A.'
+  },
+  {
+    id: 'p1_11',
+    text: 'Elip (E): x²/25 + y²/16 = 1 có các đỉnh nằm trên trục lớn có tọa độ là:',
+    options: ['A. (4; 0); (-4; 0).', 'B. (5; 0); (-5; 0).', 'C. (0; 5); (0; -5).', 'D. (0; 4); (0; -4)'],
+    correct: 'B',
+    explanation: 'Ta có a² = 25 => a = 5. Trục lớn nằm trên Ox, tọa độ các đỉnh trên trục lớn là A₁(5; 0) và A₂(-5; 0). Chọn B.'
+  },
+  {
+    id: 'p1_12',
+    text: 'Giả sử ta dùng 5 màu để tô cho 3 nước khác nhau trên bản đồ và không có màu nào được dùng hai lần. Số các cách để chọn những màu cần dùng là:',
+    options: ['A. 5!/2!', 'B. 8.', 'C. 5!/(3!2!)', 'D. 5³.'],
+    correct: 'A',
+    explanation: 'Mỗi cách chọn 3 màu từ 5 màu và sắp xếp cho 3 nước là một chỉnh hợp chập 3 của 5. Số cách là A³₅ = 5! / (5-3)! = 5! / 2!. Chọn A.'
+  }
+];
+
+const part2Data = [
+  {
+    id: 'p2_1',
+    text: 'Câu 1. Trong một lớp học có 20 học sinh nam và 24 học sinh nữ. Giáo viên chủ nhiệm cần chọn 2 học sinh:',
+    parts: [
+      { id: 'a', text: 'a) Số cách chọn 2 bạn nam là C²₂₀ cách.', correct: true },
+      { id: 'b', text: 'b) Số cách chọn 2 bạn làm hai việc khác nhau là A²₂₄', correct: false },
+      { id: 'c', text: 'c) Số cách chọn 2 bạn không phân biệt nam, nữ là C²₄₄ cách.', correct: true },
+      { id: 'd', text: 'd) Số cách chọn 2 bạn, trong đó có 1 bạn nam và 1 bạn nữ là 480 cách.', correct: true }
+    ],
+    explanation: 'a) Đúng. Chọn 2 nam từ 20 nam. \nb) Sai. Chọn 2 bạn (bất kỳ) làm 2 việc khác nhau là chọn 2 từ 44 học sinh có thứ tự, phải là A²₄₄. \nc) Đúng. Tổng số HS là 44, chọn 2 không thứ tự. \nd) Đúng. 1 nam (C¹₂₀) × 1 nữ (C¹₂₄) = 20 × 24 = 480.'
+  },
+  {
+    id: 'p2_2',
+    text: 'Câu 2. Gọi A là tập hợp các số tự nhiên có 2 chữ số nhỏ hơn 18. Lấy ra 1 số tự nhiên bất kỳ trong A',
+    parts: [
+      { id: 'a', text: 'a) Không gian mẫu Ω = {10,11,12,13,14,15,16,17}.', correct: true },
+      { id: 'b', text: 'b) Gọi A là biến cố "lấy được số tự nhiên lẻ". Ta có: P(A) = 4/5.', correct: false },
+      { id: 'c', text: 'c) Gọi B là biến cố "lấy được số tự nhiên chia hết cho 3". Ta có: P(B) = 1/4.', correct: true },
+      { id: 'd', text: 'd) Gọi C là biến cố "lấy được số nguyên tố". Ta có: P(C) = 3/8.', correct: true }
+    ],
+    explanation: 'a) Đúng. Các số tự nhiên có 2 chữ số < 18, n(Ω)=8. \nb) Sai. Số lẻ có {11,13,15,17} (4 số) => P(A) = 4/8 = 1/2. \nc) Đúng. Số chia hết cho 3: {12,15} (2 số) => P(B) = 2/8 = 1/4. \nd) Đúng. Số nguyên tố: {11,13,17} (3 số) => P(C) = 3/8.'
+  },
+  {
+    id: 'p2_3',
+    text: 'Câu 3: Cho hai đường thẳng Δ₁: 2x - y + 2 = 0 và Δ₂: {x = 1 + 3t; y = -2 + 4t}. Khi đó:',
+    parts: [
+      { id: 'a', text: 'a) Đường thẳng Δ₁ có vectơ pháp tuyến n = (2; -1)', correct: true },
+      { id: 'b', text: 'b) Đường thẳng Δ₂ có vectơ pháp tuyến là n = (3; 4)', correct: false },
+      { id: 'c', text: 'c) Phương trình tham số của đường thẳng Δ₁ là {x = t; y = 2 + 2t}.', correct: true },
+      { id: 'd', text: 'd) Phương trình tổng quát của đường thẳng Δ₂ là 4x - 3y - 7 = 0', correct: false }
+    ],
+    explanation: 'a) Đúng. Từ PT tổng quát. \nb) Sai. (3;4) là VTCP, VTPT phải là (4;-3). \nc) Đúng. Thế x=t, y=2+2t vào Δ₁ ta được 2t - (2+2t) + 2 = 0 (luôn đúng). \nd) Sai. Δ₂ qua M(1;-2), VTPT(4;-3) => PT: 4(x-1) - 3(y+2) = 0 <=> 4x - 3y - 10 = 0.'
+  },
+  {
+    id: 'p2_4',
+    text: 'Câu 4: Trong mặt phẳng với hệ trục toạ độ vuông góc Oxy, cho đường tròn (C) có tâm I(3; 4) và đi qua O(0; 0).',
+    parts: [
+      { id: 'a', text: 'a) Bán kính của đường tròn (C) là R = 5.', correct: true },
+      { id: 'b', text: 'b) Phương trình đường tròn (C): (x - 3)² + (y - 4)² = 25.', correct: true },
+      { id: 'c', text: 'c) Điểm K(1; 4) nằm trên đường tròn.', correct: false },
+      { id: 'd', text: 'd) Đường thẳng Δ: x - 3y = 0 tiếp xúc với đường tròn (C).', correct: false }
+    ],
+    explanation: 'a) Đúng. R = OI = √(3² + 4²) = 5. \nb) Đúng. PT có dạng (x-a)²+(y-b)²=R². \nc) Sai. Thế K(1;4) vào PT: (1-3)² + (4-4)² = 4 ≠ 25. \nd) Sai. Khoảng cách d(I, Δ) = |3 - 3(4)|/√(1²+(-3)²) = 9/√10 ≠ R(5), nên đường thẳng không tiếp xúc.'
+  }
+];
+
+const part3Data = [
+  {
+    id: 'p3_1',
+    text: 'Câu 1. Một tổ có 5 nam và 4 nữ. Có bao nhiêu cách xếp tổ trên thành một hàng ngang sao cho giữa hai bạn nữ có đúng một bạn nam.',
+    correct: '8640',
+    explanation: '4 nữ tạo ra 3 khoảng trống ở giữa. Xếp 4 nữ có 4! = 24 cách. Chọn 3 nam xếp vào 3 khoảng trống giữa 4 nữ có A³₅ = 60 cách. Lúc này ta được 1 khối "N-m-N-m-N-m-N". Xem khối này như 1 người. Còn 2 nam còn lại. Xếp khối này và 2 nam còn lại thành hàng ngang (3 phần tử) có 3! = 6 cách. Vậy tổng số cách: 24 × 60 × 6 = 8640 cách.'
+  },
+  {
+    id: 'p3_2',
+    text: 'Câu 2. Trong khai triển (2 - x)ⁿ biết C¹ₙ + C³ₙ = 15. Tìm hệ số của x⁴?',
+    correct: '10',
+    explanation: 'Giải PT: C¹ₙ + C³ₙ = 15 <=> n + n(n-1)(n-2)/6 = 15. Nhẩm thấy n=5 thỏa mãn (5 + 10 = 15). Khai triển (2 - x)⁵. Số hạng tổng quát T_{k+1} = Cᵏ₅ · 2^(5-k) · (-x)ᵏ. Chứa x⁴ ứng với k = 4. Hệ số là: C⁴₅ · 2¹ · (-1)⁴ = 5 × 2 × 1 = 10.'
+  },
+  {
+    id: 'p3_3',
+    text: 'Câu 3. Có 5 hành khách bước lên một đoàn tàu gồm 5 toa. Mỗi hành khách độc lập với nhau và chọn ngẫu nhiên một toa. Tính xác suất để 1 toa có 3 người, 1 toa có 2 người, 3 toa còn lại không có ai. (Kết quả làm tròn đến hàng phần trăm)',
+    correct: '0.06',
+    explanation: 'Không gian mẫu: Mỗi khách có 5 cách chọn => 5⁵ = 3125. Biến cố: Chọn 1 toa chứa 3 người (C¹₅ = 5), chọn 3 khách vào toa đó (C³₅ = 10). Chọn 1 toa chứa 2 người từ 4 toa còn lại (C¹₄ = 4), chọn 2 khách còn lại vào toa đó (C²₂ = 1). Các toa còn lại 0 người. Số TH thuận lợi: 5 × 10 × 4 × 1 = 200. P = 200 / 3125 = 0.064 ≈ 0.06.'
+  },
+  {
+    id: 'p3_4',
+    text: 'Câu 4. Giải bóng chuyền VTV Cup gồm 9 đội bóng tham dự, trong đó có 6 đội nước ngoài và 3 đội của Việt Nam. Ban tổ chức cho bốc thăm ngẫu nhiên để chia thành 3 bảng A, B, C và mỗi bảng có 3 đội. Tính xác suất để 3 đội bóng của Việt Nam ở 3 bảng khác nhau. (Kết quả làm tròn đến hàng phần trăm)',
+    correct: '0.32',
+    explanation: 'Không gian mẫu chia 9 đội vào 3 bảng A, B, C: C³₉ × C³₆ × C³₃ = 1680. Số cách chia thỏa mãn (3 đội VN ở 3 bảng): Xếp 3 đội VN vào 3 bảng có 3! = 6 cách. Chia 6 đội ngoại vào 3 bảng (mỗi bảng 2 đội): C²₆ × C²₄ × C²₂ = 90 cách. Số KQ thuận lợi: 6 × 90 = 540. P = 540 / 1680 ≈ 0.3214 ≈ 0.32.'
+  },
+  {
+    id: 'p3_5',
+    text: 'Câu 5. Một trạm viễn thông S có toạ độ (-6; 16). Một người chạy trên đoạn cao tốc có dạng một đường thẳng d có phương trình 8x - 15y - 1 = 0. Trên cao tốc, thường có tình trạng sóng yếu. Tính khoảng cách ngắn nhất để người đó đến trạm viễn thông S.',
+    correct: '17',
+    explanation: 'Khoảng cách ngắn nhất chính là khoảng cách từ điểm S đến đường thẳng d. d(S, d) = |8(-6) - 15(16) - 1| / √(8² + (-15)²) = |-48 - 240 - 1| / 17 = |-289| / 17 = 17.'
+  },
+  {
+    id: 'p3_6',
+    text: 'Câu 6. Theo thị hiếu của thị trường một công ty sản xuất một lô sản phẩm gương có hình elip có phương trình 1764x² + a²y² = 1764a² (đơn vị cm) biết độ dài trục lớn và trục bé tỷ lệ theo tỷ lệ vàng (phi) φ ≈ 1,618. Một mét vuông kính để sản xuất gương là 270 nghìn đồng. Tính số tiền kính để sản xuất ra một sản phẩm gương hoàn thiện. Biết diện tích elip S = πab. (Kết quả làm tròn đến hàng đơn vị).',
+    correct: '242098',
+    explanation: 'PT <=> x²/a² + y²/1764 = 1. Đây là elip với các bán trục là a và √1764 = 42 (cm). Do độ dài các trục tỷ lệ theo φ=1.618 (và theo PT này, hình chữ nhật cơ sở thường có a > 42 để là trục lớn trên Ox), ta lấy a = 42 × 1.618 = 67.956 cm. Diện tích S = π × 67.956 × 42 ≈ 8966.588 cm² = 0.8966588 m². Chi phí: 0.8966588 × 270000 ≈ 242097.8 đồng. Làm tròn hàng đơn vị là 242098.'
+  }
+];
+
+export default function App() {
+  const [answers, setAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [results, setResults] = useState(null);
+
+  // Khôi phục trạng thái làm bài từ localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem('deOnSo1_State');
+    if (savedData) {
+      const parsed = JSON.parse(savedData);
+      setAnswers(parsed.answers || {});
+      setIsSubmitted(parsed.isSubmitted || false);
+      setResults(parsed.results || null);
+    }
+  }, []);
+
+  // Lưu trạng thái làm bài mỗi khi có thay đổi
+  useEffect(() => {
+    localStorage.setItem('deOnSo1_State', JSON.stringify({
+      answers,
+      isSubmitted,
+      results
+    }));
+  }, [answers, isSubmitted, results]);
+
+  const handleP1Change = (qId, optionPrefix) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qId]: optionPrefix }));
+  };
+
+  const handleP2Change = (qId, partId, value) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [`${qId}_${partId}`]: value }));
+  };
+
+  const handleP3Change = (qId, value) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qId]: value }));
+  };
+
+  const handleSubmit = () => {
+    if (!window.confirm("Bạn có chắc chắn muốn nộp bài?")) return;
+    
+    let scoreP1 = 0;
+    let scoreP2 = 0;
+    let scoreP3 = 0;
+    
+    const details = { p1: {}, p2: {}, p3: {} };
+
+    // Chấm Phần 1 (0.25đ / câu)
+    part1Data.forEach(q => {
+      const isCorrect = answers[q.id] === q.correct;
+      if (isCorrect) scoreP1 += 0.25;
+      details.p1[q.id] = isCorrect;
+    });
+
+    // Chấm Phần 2 (Thang điểm: 4 ý đúng=1đ, 3 ý=0.5đ, 2 ý=0.25đ, 1 ý=0.1đ, 0 ý=0đ)
+    part2Data.forEach(q => {
+      let correctCount = 0;
+      q.parts.forEach(p => {
+        const ans = answers[`${q.id}_${p.id}`];
+        if (ans === p.correct) correctCount++;
+      });
+      
+      let qScore = 0;
+      if (correctCount === 4) qScore = 1;
+      else if (correctCount === 3) qScore = 0.5;
+      else if (correctCount === 2) qScore = 0.25;
+      else if (correctCount === 1) qScore = 0.1;
+
+      scoreP2 += qScore;
+      details.p2[q.id] = { correctCount, score: qScore };
+    });
+
+    // Chấm Phần 3 (0.5đ / câu)
+    part3Data.forEach(q => {
+      const userAns = (answers[q.id] || '').trim().replace(',', '.');
+      const isCorrect = userAns === q.correct;
+      if (isCorrect) scoreP3 += 0.5;
+      details.p3[q.id] = isCorrect;
+    });
+
+    const totalScore = scoreP1 + scoreP2 + scoreP3;
+    setResults({ scoreP1, scoreP2, scoreP3, totalScore, details });
+    setIsSubmitted(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const resetTest = () => {
+    if (!window.confirm("Bạn muốn làm lại từ đầu? Mọi dữ liệu sẽ bị xoá.")) return;
+    setAnswers({});
+    setIsSubmitted(false);
+    setResults(null);
+    localStorage.removeItem('deOnSo1_State');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pb-24">
+      {/* Header */}
+      <div className="bg-white shadow-md sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-blue-800">ĐỀ ÔN SỐ 1</h1>
+            <p className="text-sm text-gray-500">Môn Toán - Tự động lưu tiến độ</p>
+          </div>
+          {isSubmitted && results && (
+            <div className="text-right">
+              <span className="block text-2xl font-bold text-red-600">{results.totalScore.toFixed(2)} / 10.00</span>
+              <span className="text-xs text-gray-500">Điểm của bạn</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        
+        {/* Kết quả chi tiết (Hiển thị sau khi nộp) */}
+        {isSubmitted && results && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 shadow-sm">
+            <h2 className="text-xl font-bold text-blue-800 mb-4">Kết Quả Bài Làm</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="bg-white p-4 rounded border">
+                <div className="text-sm text-gray-500">Phần I (Tối đa 3đ)</div>
+                <div className="text-xl font-bold text-green-600">{results.scoreP1.toFixed(2)}</div>
+              </div>
+              <div className="bg-white p-4 rounded border">
+                <div className="text-sm text-gray-500">Phần II (Tối đa 4đ)</div>
+                <div className="text-xl font-bold text-green-600">{results.scoreP2.toFixed(2)}</div>
+              </div>
+              <div className="bg-white p-4 rounded border">
+                <div className="text-sm text-gray-500">Phần III (Tối đa 3đ)</div>
+                <div className="text-xl font-bold text-green-600">{results.scoreP3.toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PHẦN I */}
+        <div className="mb-10">
+          <h2 className="text-lg font-bold bg-gray-200 p-2 rounded mb-4">PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn. (Mỗi câu 0,25 điểm)</h2>
+          {part1Data.map((q, idx) => (
+            <div key={q.id} className={`mb-6 p-4 rounded-lg border ${isSubmitted ? (results.details.p1[q.id] ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50') : 'border-gray-200 bg-white'}`}>
+              <p className="font-semibold mb-3"><span className="mr-1">Câu {idx + 1}.</span> {q.text}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {q.options.map(opt => {
+                  const prefix = opt.charAt(0);
+                  const isChecked = answers[q.id] === prefix;
+                  let optClass = "p-2 border rounded cursor-pointer transition-colors ";
+                  
+                  if (isSubmitted) {
+                    if (prefix === q.correct) optClass += "bg-green-200 border-green-500 font-bold";
+                    else if (isChecked && prefix !== q.correct) optClass += "bg-red-200 border-red-500 line-through text-gray-500";
+                    else optClass += "bg-white text-gray-600 opacity-60";
+                  } else {
+                    optClass += isChecked ? "bg-blue-100 border-blue-500" : "bg-white hover:bg-gray-50";
+                  }
+
+                  return (
+                    <div 
+                      key={opt} 
+                      className={optClass}
+                      onClick={() => handleP1Change(q.id, prefix)}
+                    >
+                      <input 
+                        type="radio" 
+                        name={q.id} 
+                        checked={isChecked} 
+                        readOnly
+                        className="mr-2"
+                      />
+                      {opt}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Lời giải */}
+              {isSubmitted && (
+                <div className="mt-4 text-sm bg-yellow-50 p-3 rounded border border-yellow-200">
+                  <span className="font-bold text-yellow-800">Lời giải chi tiết:</span>
+                  <p className="mt-1 whitespace-pre-wrap">{q.explanation}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* PHẦN II */}
+        <div className="mb-10">
+          <h2 className="text-lg font-bold bg-gray-200 p-2 rounded mb-2">PHẦN II. Câu trắc nghiệm đúng sai.</h2>
+          <p className="text-sm italic text-gray-600 mb-4">(Điểm mỗi câu: 4 ý đúng = 1đ, 3 ý = 0.5đ, 2 ý = 0.25đ, 1 ý = 0.1đ, 0 ý = 0đ)</p>
+          
+          {part2Data.map((q) => (
+             <div key={q.id} className="mb-8 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                <p className="font-semibold mb-4 text-lg">{q.text}</p>
+                
+                {isSubmitted && (
+                  <div className="mb-3 inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded font-semibold text-sm">
+                    Điểm câu này: {results.details.p2[q.id].score} (Đúng {results.details.p2[q.id].correctCount}/4 ý)
+                  </div>
+                )}
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="p-2 border-b">Ý</th>
+                        <th className="p-2 border-b w-24 text-center">Đúng</th>
+                        <th className="p-2 border-b w-24 text-center">Sai</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {q.parts.map(part => {
+                        const ans = answers[`${q.id}_${part.id}`];
+                        let rowClass = "hover:bg-gray-50";
+                        
+                        if (isSubmitted) {
+                          if (ans === part.correct) rowClass = "bg-green-50";
+                          else if (ans !== undefined) rowClass = "bg-red-50";
+                        }
+
+                        return (
+                          <tr key={part.id} className={`border-b ${rowClass}`}>
+                            <td className="p-3">{part.text}</td>
+                            <td className="p-2 text-center">
+                              <input 
+                                type="radio" 
+                                name={`${q.id}_${part.id}`} 
+                                checked={ans === true}
+                                onChange={() => handleP2Change(q.id, part.id, true)}
+                                disabled={isSubmitted}
+                                className="w-5 h-5 cursor-pointer accent-blue-600"
+                              />
+                            </td>
+                            <td className="p-2 text-center">
+                              <input 
+                                type="radio" 
+                                name={`${q.id}_${part.id}`} 
+                                checked={ans === false}
+                                onChange={() => handleP2Change(q.id, part.id, false)}
+                                disabled={isSubmitted}
+                                className="w-5 h-5 cursor-pointer accent-blue-600"
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {isSubmitted && (
+                  <div className="mt-4 text-sm bg-yellow-50 p-3 rounded border border-yellow-200">
+                    <span className="font-bold text-yellow-800">Lời giải chi tiết:</span>
+                    <p className="mt-1 whitespace-pre-wrap">{q.explanation}</p>
+                  </div>
+                )}
+             </div>
+          ))}
+        </div>
+
+        {/* PHẦN III */}
+        <div className="mb-10">
+          <h2 className="text-lg font-bold bg-gray-200 p-2 rounded mb-4">PHẦN III. Câu trắc nghiệm trả lời ngắn. (Mỗi câu 0,5 điểm)</h2>
+          {part3Data.map((q, idx) => (
+            <div key={q.id} className={`mb-6 p-4 rounded-lg border ${isSubmitted ? (results.details.p3[q.id] ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50') : 'border-gray-200 bg-white'}`}>
+              <p className="font-semibold mb-3"><span className="mr-1">Câu {idx + 1}.</span> {q.text}</p>
+              
+              <div className="flex items-center space-x-4">
+                <span className="font-medium text-gray-700">Đáp án của bạn:</span>
+                <input 
+                  type="text" 
+                  value={answers[q.id] || ''} 
+                  onChange={(e) => handleP3Change(q.id, e.target.value)}
+                  disabled={isSubmitted}
+                  className="border border-gray-400 p-2 rounded w-48 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Nhập số..."
+                />
+              </div>
+
+              {isSubmitted && (
+                <div className="mt-4">
+                  {!results.details.p3[q.id] && (
+                    <div className="mb-2 text-sm">
+                      Đáp án đúng là: <span className="font-bold text-green-600 bg-green-100 px-2 py-1 rounded">{q.correct}</span>
+                    </div>
+                  )}
+                  <div className="text-sm bg-yellow-50 p-3 rounded border border-yellow-200">
+                    <span className="font-bold text-yellow-800">Lời giải chi tiết:</span>
+                    <p className="mt-1 whitespace-pre-wrap">{q.explanation}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+      </div>
+
+      {/* Floating Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 shadow-lg p-4 z-20">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            {isSubmitted ? 'Bài làm đã được nộp.' : 'Dữ liệu đang được lưu tự động.'}
+          </div>
+          <div className="space-x-4">
+            {isSubmitted ? (
+               <button 
+                 onClick={resetTest}
+                 className="px-6 py-2 bg-gray-200 text-gray-800 font-bold rounded hover:bg-gray-300 transition"
+               >
+                 Làm lại từ đầu
+               </button>
+            ) : (
+              <button 
+                onClick={handleSubmit}
+                className="px-8 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition"
+              >
+                KẾT THÚC & CHẤM ĐIỂM
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
